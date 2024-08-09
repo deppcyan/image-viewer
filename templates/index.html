@@ -11,23 +11,46 @@
         .directory, .image-preview {
             margin: 20px;
         }
-        .image-preview img {
-            max-width: 200px;
-            height: auto;
-        }
-        .image-info {
-            margin-top: 10px;
-        }
-        .navigation {
-            margin: 20px;
-        }
-        .image-grid {
+        .image-preview {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 10px;
         }
+        .image-preview img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+        .image-info {
+            text-align: center;
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+        .navigation {
+            margin: 20px;
+        }
         .pagination {
             margin: 20px;
+            text-align: center;
+        }
+        .pagination a, .pagination span {
+            margin: 0 5px;
+            text-decoration: none;
+            color: black;
+        }
+        .pagination span {
+            font-weight: bold;
+        }
+        .delete-button {
+            display: inline-block;
+            margin-top: 5px;
+            padding: 5px 10px;
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
         }
     </style>
 </head>
@@ -60,30 +83,37 @@
 
     <div class="image-preview">
         <h2>Images</h2>
-        <div class="image-grid">
-            {% for filename, info in images %}
-                <div>
-                    <a href="{{ url_for('serve_image', subpath=current_path, filename=filename) }}">
-                        <img src="{{ url_for('serve_image', subpath=current_path, filename=filename) }}" alt="{{ filename }}">
-                    </a>
-                    <div class="image-info">
-                        <strong>{{ filename }}</strong><br>
-                        Resolution: {{ info[1][0] }}x{{ info[1][1] }}<br>
-                        Format: {{ info[0] }}
-                    </div>
+        {% for filename, info in images %}
+            <div class="image-container">
+                <a href="{{ url_for('serve_image', subpath=current_path, filename=filename) }}">
+                    <img src="{{ url_for('serve_image', subpath=current_path, filename=filename) }}" alt="{{ filename }}">
+                </a>
+                <div class="image-info">
+                    <strong>{{ filename | truncate(20) }}</strong><br>
+                    Resolution: {{ info[1][0] }}x{{ info[1][1] }}<br>
+                    Format: {{ info[0] }}<br>
+                    <form action="{{ url_for('delete_image', subpath=current_path, filename=filename) }}" method="post" style="display:inline;">
+                        <button type="submit" class="delete-button">Delete</button>
+                    </form>
                 </div>
-            {% endfor %}
-        </div>
+            </div>
+        {% endfor %}
     </div>
 
     <div class="pagination">
         {% if page > 1 %}
             <a href="{{ url_for('index', subpath=current_path, page=page-1) }}">Previous</a>
         {% endif %}
+        {% for p in range(start_page, end_page + 1) %}
+            {% if p == page %}
+                <span>{{ p }}</span>
+            {% else %}
+                <a href="{{ url_for('index', subpath=current_path, page=p) }}">{{ p }}</a>
+            {% endif %}
+        {% endfor %}
         {% if page < total_pages %}
             <a href="{{ url_for('index', subpath=current_path, page=page+1) }}">Next</a>
         {% endif %}
-        <span>Page {{ page }} of {{ total_pages }}</span>
     </div>
 </body>
 </html>
