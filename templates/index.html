@@ -21,6 +21,14 @@
         .navigation {
             margin: 20px;
         }
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .pagination {
+            margin: 20px;
+        }
     </style>
 </head>
 <body>
@@ -52,9 +60,9 @@
 
     <div class="image-preview">
         <h2>Images</h2>
-        <ul>
+        <div class="image-grid">
             {% for filename, info in images %}
-                <li>
+                <div>
                     <a href="{{ url_for('serve_image', subpath=current_path, filename=filename) }}">
                         <img src="{{ url_for('serve_image', subpath=current_path, filename=filename) }}" alt="{{ filename }}">
                     </a>
@@ -63,9 +71,19 @@
                         Resolution: {{ info[1][0] }}x{{ info[1][1] }}<br>
                         Format: {{ info[0] }}
                     </div>
-                </li>
+                </div>
             {% endfor %}
-        </ul>
+        </div>
+    </div>
+
+    <div class="pagination">
+        {% if page > 1 %}
+            <a href="{{ url_for('index', subpath=current_path, page=page-1) }}">Previous</a>
+        {% endif %}
+        {% if page < total_pages %}
+            <a href="{{ url_for('index', subpath=current_path, page=page+1) }}">Next</a>
+        {% endif %}
+        <span>Page {{ page }} of {{ total_pages }}</span>
     </div>
 </body>
 </html>

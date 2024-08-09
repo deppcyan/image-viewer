@@ -4,6 +4,7 @@ from PIL import Image
 
 app = Flask(__name__)
 BASE_DIR = '/Users/johnny/dataset'  # Change this to the base directory path
+PER_PAGE = 50
 
 def get_image_info(image_path):
     try:
@@ -31,8 +32,16 @@ def index(subpath=''):
     
     image_files = [f for f in files if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp'))]
     images_info = [(f, get_image_info(os.path.join(dir_path, f))) for f in image_files]
-    
-    return render_template('index.html', directories=directories, images=images_info, current_path=subpath)
+
+    # Pagination
+    page = int(request.args.get('page', 1))
+    total_images = len(images_info)
+    total_pages = (total_images + PER_PAGE - 1) // PER_PAGE
+    start = (page - 1) * PER_PAGE
+    end = start + PER_PAGE
+    images_info_paginated = images_info[start:end]
+
+    return render_template('index.html', directories=directories, images=images_info_paginated, current_path=subpath, page=page, total_pages=total_pages)
 
 @app.route('/images/<path:subpath>/<path:filename>')
 def serve_image(subpath, filename):
