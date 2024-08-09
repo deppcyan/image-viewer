@@ -71,13 +71,32 @@ def serve_image(subpath, filename):
 
 @app.route('/delete/<path:subpath>/<path:filename>', methods=['POST'])
 def delete_image(subpath, filename):
+    # Retrieve the current page number from the form
+    page = request.form.get('page', 1, type=int)
+    print(f"Deleting file: {filename} from {subpath} on page {page}")
+    # Construct the file and tag paths
     file_path = os.path.join(BASE_DIR, subpath, filename)
     tag_path = os.path.splitext(file_path)[0] + '.txt'
+    
+    # Delete the image file if it exists
     if os.path.exists(file_path):
         os.remove(file_path)
+    
+    # Delete the tag file if it exists
     if os.path.exists(tag_path):
         os.remove(tag_path)
-    return redirect(url_for('index', subpath=subpath))
+    
+    # Extract subpath from the filename
+    filename_parts = filename.split('/')
+    if len(filename_parts) > 1:
+        subpath_with_filename = '/'.join(filename_parts[:-1])
+    else:
+        subpath_with_filename = ''
+    
+    # Redirect to the updated subpath and page
+    new_subpath = os.path.join(subpath, subpath_with_filename)
+    return redirect(url_for('index', subpath=new_subpath, page=page))
+
 
 if __name__ == '__main__':
     app.run(debug=True)
