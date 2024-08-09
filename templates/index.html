@@ -18,7 +18,7 @@
         }
         .image-preview img {
             width: 100%;
-            height: auto;
+            height: 150px; /* Fixed height for thumbnails */
             object-fit: cover;
         }
         .image-info {
@@ -52,6 +52,10 @@
             text-align: center;
             text-decoration: none;
         }
+        .delete-button.disabled {
+            background-color: grey;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -83,7 +87,7 @@
 
     <div class="image-preview">
         <h2>Images</h2>
-        {% for filename, info in images %}
+        {% for filename, info, tags in images %}
             <div class="image-container">
                 <a href="{{ url_for('serve_image', subpath=current_path, filename=filename) }}">
                     <img src="{{ url_for('serve_image', subpath=current_path, filename=filename) }}" alt="{{ filename }}">
@@ -92,8 +96,9 @@
                     <strong>{{ filename | truncate(20) }}</strong><br>
                     Resolution: {{ info[1][0] }}x{{ info[1][1] }}<br>
                     Format: {{ info[0] }}<br>
+                    Tags: {{ tags }}<br>
                     <form action="{{ url_for('delete_image', subpath=current_path, filename=filename) }}" method="post" style="display:inline;">
-                        <button type="submit" class="delete-button">Delete</button>
+                        <button type="submit" class="delete-button" onclick="this.classList.add('disabled'); this.disabled=true;">Delete</button>
                     </form>
                 </div>
             </div>
@@ -104,7 +109,7 @@
         {% if page > 1 %}
             <a href="{{ url_for('index', subpath=current_path, page=page-1) }}">Previous</a>
         {% endif %}
-        {% for p in range(start_page, end_page + 1) %}
+        {% for p in range(1, total_pages + 1) %}
             {% if p == page %}
                 <span>{{ p }}</span>
             {% else %}

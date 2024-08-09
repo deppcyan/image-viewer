@@ -12,6 +12,14 @@ def get_image_info(image_path):
     except Exception as e:
         return None
 
+def get_image_tags(tag_path):
+    try:
+        with open(tag_path, 'r') as file:
+            tags = file.read().strip()
+            return tags
+    except Exception as e:
+        return ''
+
 @app.route('/')
 @app.route('/<path:subpath>')
 @app.route('/<path:subpath>/page/<int:page>')
@@ -42,14 +50,16 @@ def index(subpath='', page=1):
     end = start + images_per_page
     image_files = image_files[start:end]
     
-    images_info = [(f, get_image_info(os.path.join(dir_path, f))) for f in image_files]
-    
-    start_page = max(1, page - 5)
-    end_page = min(total_pages, page + 4)
+    images_info = []
+    for f in image_files:
+        image_path = os.path.join(dir_path, f)
+        tag_path = os.path.splitext(image_path)[0] + '.txt'
+        tags = get_image_tags(tag_path)
+        info = get_image_info(image_path)
+        images_info.append((f, info, tags))
     
     return render_template('index.html', directories=directories, images=images_info,
-                           current_path=subpath, page=page, total_pages=total_pages,
-                           start_page=start_page, end_page=end_page)
+                           current_path=subpath, page=page, total_pages=total_pages)
 
 @app.route('/images/<path:subpath>/<path:filename>')
 def serve_image(subpath, filename):
@@ -62,11 +72,12 @@ def serve_image(subpath, filename):
 @app.route('/delete/<path:subpath>/<path:filename>', methods=['POST'])
 def delete_image(subpath, filename):
     file_path = os.path.join(BASE_DIR, subpath, filename)
+    tag_path = os.path.splitext(file_path)[0] + '.txt'
     if os.path.exists(file_path):
         os.remove(file_path)
-        return redirect(url_for('index', subpath=subpath))
-    else:
-        return "File not found", 404
+    if os.path.exists(tag_path):
+        os.remove(tag_path)
+    return redirect(url_for('index', subpath=subpath))
 
 if __name__ == '__main__':
     app.run(debug=True)
