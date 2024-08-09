@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .directory, .image-preview {
+            margin: 20px;
+        }
+        .image-preview img {
+            max-width: 200px;
+            height: auto;
+        }
+        .image-info {
+            margin-top: 10px;
+        }
+        .navigation {
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image Viewer</h1>
+
+    <div class="navigation">
+        <a href="/">Home</a>
+        {% if current_path %}
+            <a href="{{ url_for('index', subpath='') }}">Root</a>
+            {% set path_parts = current_path.split('/') %}
+            {% for i in range(path_parts|length) %}
+                {% set partial_path = path_parts[:i+1]|join('/') %}
+                <a href="{{ url_for('index', subpath=partial_path) }}">{{ path_parts[i] }}</a>
+                {% if i < path_parts|length - 1 %}
+                    /
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <div class="directory">
+        <h2>Directories</h2>
+        <ul>
+            {% for directory in directories %}
+                <li><a href="{{ url_for('index', subpath=current_path + '/' + directory) }}">{{ directory }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="image-preview">
+        <h2>Images</h2>
+        <ul>
+            {% for filename, info in images %}
+                <li>
+                    <a href="{{ url_for('serve_image', subpath=current_path, filename=filename) }}">
+                        <img src="{{ url_for('serve_image', subpath=current_path, filename=filename) }}" alt="{{ filename }}">
+                    </a>
+                    <div class="image-info">
+                        <strong>{{ filename }}</strong><br>
+                        Resolution: {{ info[1][0] }}x{{ info[1][1] }}<br>
+                        Format: {{ info[0] }}
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

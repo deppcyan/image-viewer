@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Preview</title>
+</head>
+<body>
+    <h1>Image Preview</h1>
+    <img src="{{ image_url }}" alt="{{ info.name }}" style="max-width: 100%; height: auto;">
+    <p>Name: {{ info.name }}</p>
+    <p>Format: {{ info.format }}</p>
+    <p>Mode: {{ info.mode }}</p>
+    <p>Size: {{ info.size[0] }} x {{ info.size[1] }}</p>
+    <a href="{{ url_for('index', path=request.args.get('path', '')) }}">Back to Gallery</a>
+</body>
+</html>
