@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, send_from_directory, redirect, url_for
 import os
+import argparse
+from flask import Flask, render_template, request, send_from_directory, redirect, url_for
 from PIL import Image
 
 app = Flask(__name__)
-BASE_DIR = '/Users/johnny/dataset'  # Change this to the base directory path
 
+# Function to handle image information retrieval
 def get_image_info(image_path):
     try:
         with Image.open(image_path) as img:
@@ -12,6 +13,7 @@ def get_image_info(image_path):
     except Exception as e:
         return None
 
+# Function to retrieve image tags
 def get_image_tags(tag_path):
     try:
         with open(tag_path, 'r') as file:
@@ -20,11 +22,12 @@ def get_image_tags(tag_path):
     except Exception as e:
         return ''
 
+# Routes for displaying images and directories
 @app.route('/')
 @app.route('/<path:subpath>')
 @app.route('/<path:subpath>/page/<int:page>')
 def index(subpath='', page=1):
-    dir_path = os.path.join(BASE_DIR, subpath)
+    dir_path = os.path.join(app.config['BASE_DIR'], subpath)
     if not os.path.exists(dir_path):
         return "Directory not found", 404
 
@@ -61,21 +64,23 @@ def index(subpath='', page=1):
     return render_template('index.html', directories=directories, images=images_info,
                            current_path=subpath, page=page, total_pages=total_pages)
 
+# Route to serve images
 @app.route('/images/<path:subpath>/<path:filename>')
 def serve_image(subpath, filename):
-    file_path = os.path.join(BASE_DIR, subpath, filename)
+    file_path = os.path.join(app.config['BASE_DIR'], subpath, filename)
     if os.path.exists(file_path):
-        return send_from_directory(os.path.join(BASE_DIR, subpath), filename)
+        return send_from_directory(os.path.join(app.config['BASE_DIR'], subpath), filename)
     else:
         return "File not found", 404
 
+# Route to delete images and corresponding tag files
 @app.route('/delete/<path:subpath>/<path:filename>', methods=['POST'])
 def delete_image(subpath, filename):
     # Retrieve the current page number from the form
     page = request.form.get('page', 1, type=int)
     print(f"Deleting file: {filename} from {subpath} on page {page}")
     # Construct the file and tag paths
-    file_path = os.path.join(BASE_DIR, subpath, filename)
+    file_path = os.path.join(app.config['BASE_DIR'], subpath, filename)
     tag_path = os.path.splitext(file_path)[0] + '.txt'
     
     # Delete the image file if it exists
@@ -97,6 +102,16 @@ def delete_image(subpath, filename):
     new_subpath = os.path.join(subpath, subpath_with_filename)
     return redirect(url_for('index', subpath=new_subpath, page=page))
 
-
+# Main function to run the app with command-line arguments
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Flask Image Viewer")
+    parser.add_argument('--base_dir', type=str, default='/Users/johnny/dataset',
+                        help='Base directory for image storage')
+    
+    args = parser.parse_args()
+    
+    # Set the BASE_DIR from the command-line argument or use the default
+    app.config['BASE_DIR'] = args.base_dir
+
+    # Run the Flask app
     app.run(debug=True)
